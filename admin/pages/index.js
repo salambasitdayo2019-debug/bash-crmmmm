@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { getAuth, signOut } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  getDocs
+} from "firebase/firestore";
+import {
+  getAuth,
+  signOut,
+  onAuthStateChanged
+} from "firebase/auth";
 
 // ------------------------------------------------------------------
-// Your Firebase configuration (copied from the script you provided)
+// Firebase config – copy‑paste exactly what you already have
 // ------------------------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyDPJPc2uE6E2wtUmtsrP5VWNWORmnG7x6Q",
@@ -17,34 +25,57 @@ const firebaseConfig = {
   measurementId: "G-LM534K0F15"
 };
 
-// ------------------------------------------------------------------
-// Initialise Firebase (App, Firestore, Auth, Analytics)
-// ------------------------------------------------------------------
 const app = initializeApp(firebaseConfig);
-const analytics = typeof window !== "undefined" ? getAnalytics(app) : null; // safe for SSR
+if (typeof window !== "undefined") {
+  // Analytics is optional; it will only run in the browser.
+  getAnalytics(app);
+}
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// ------------------------------------------------------------------
+// The **only** email address that may use the admin UI
+// ------------------------------------------------------------------
+const ADMIN_EMAIL = "salambasitdayo2019@gmail.com";
+
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
 
   // ----------------------------------------------------------------
-  // Load orders from Firestore
+  // Listen for auth state changes – verify the user’s email
   // ----------------------------------------------------------------
   useEffect(() => {
-    async function fetchOrders() {
-      const snapshot = await getDocs(collection(db, "orders"));
-      const list = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setOrders(list);
-    }
-    fetchOrders();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // Not signed in – send to login page
+        window.location.href = "/login";
+        return;
+      }
+
+      // Is the signed‑in user the admin email?
+      if (user.email === ADMIN_EMAIL) {
+        // ✅ Authorized – fetch orders from Firestore
+        const snapshot = await getDocs(collection(db, "orders"));
+        const list = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setOrders(list);
+        setAuthorized(true);
+      } else {
+        // ❌ Signed‑in but not the admin email
+        setAuthorized(false);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // ----------------------------------------------------------------
-  // Update order status via the Vercel serverless function
+  // Update status via the existing Vercel API endpoint
   // ----------------------------------------------------------------
   const updateStatus = async (id, newStatus) => {
     await fetch("/api/update-status", {
@@ -58,7 +89,7 @@ export default function Dashboard() {
   };
 
   // ----------------------------------------------------------------
-  // Sign‑out the admin
+  // Logout handler
   // ----------------------------------------------------------------
   const handleLogout = async () => {
     await signOut(auth);
@@ -66,15 +97,43 @@ export default function Dashboard() {
   };
 
   // ----------------------------------------------------------------
-  // UI (Tailwind‑styled)
+  // UI rendering
   // ----------------------------------------------------------------
+  if (loading) {
+    return (
+      <div className="container">
+        <p className="text-center">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return (
+      <div className="container">
+        <p className="text-center text-red-600">
+          🚫 You are signed‑in but **do not have admin privileges**.
+        </p>
+        <button
+          className="bg-primary text-white px-4 py-2 rounded mt-4"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+      </div>
+    );
+  }
+
+  // ---------- Authorized admin view ----------
   return (
     <div className="container">
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-secondary">
           BASH CRM Dashboard
         </h1>
-        <button className="bg-primary text-white px-4 py-2 rounded" onClick={handleLogout}>
+        <button
+          className="bg-primary text-white px-4 py-2 rounded"
+          onClick={handleLogout}
+        >
           Logout
         </button>
       </header>

@@ -1,0 +1,13 @@
+{
+  "name": "bash-crm",
+  "private": true,
+  "workspaces": [
+    "admin",
+    "api"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "deploy": "vercel --prod"
+  }
+}

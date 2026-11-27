@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getAuth, signOut } from 'firebase/auth';
 
 // TODO: replace with your Firebase config (same as in order form)
 const firebaseConfig = {
@@ -11,10 +12,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
 
+  // Load orders from Firestore
   useEffect(() => {
     async function fetchOrders() {
       const snapshot = await getDocs(collection(db, 'orders'));
@@ -24,21 +27,30 @@ export default function Dashboard() {
     fetchOrders();
   }, []);
 
+  // Call the Vercel API function to update an order status
   const updateStatus = async (id, newStatus) => {
-    // Call Vercel function to safely update
     await fetch('/api/update-status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderId: id, newStatus })
     });
-    // Refresh list
     setOrders(prev => prev.map(o => (o.id === id ? { ...o, status: newStatus } : o)));
   };
 
+  // Sign out the admin
+  const handleLogout = async () => {
+    await signOut(auth);
+    window.location.href = '/login';
+  };
+
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>BASH CRM Dashboard</h1>
-      <table border="1" cellPadding="5" style={{ borderCollapse: 'collapse', width: '100%' }}>
+    <div className="container">
+      <header className="header">
+        <h1>BASH CRM Dashboard</h1>
+        <button className="button" onClick={handleLogout}>Logout</button>
+      </header>
+
+      <table className="orders-table">
         <thead>
           <tr>
             <th>Order ID</th>
@@ -60,10 +72,7 @@ export default function Dashboard() {
               <td>{o.quantity}</td>
               <td>{o.status}</td>
               <td>
-                <select
-                  value={o.status}
-                  onChange={e => updateStatus(o.id, e.target.value)}
-                >
+                <select value={o.status} onChange={e => updateStatus(o.id, e.target.value)}>
                   <option value="unconfirmed">unconfirmed</option>
                   <option value="confirmed">confirmed</option>
                   <option value="in_process">in_process</option>

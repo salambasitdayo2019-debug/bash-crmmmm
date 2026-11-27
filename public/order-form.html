@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>BASH CRM Order Form</title>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+  <script>
+    // TODO: replace with your Firebase project config (free tier)
+    const firebaseConfig = {
+      apiKey: "<YOUR_API_KEY>",
+      authDomain: "<YOUR_PROJECT>.firebaseapp.com",
+      projectId: "<YOUR_PROJECT>",
+      storageBucket: "<YOUR_PROJECT>.appspot.com",
+      messagingSenderId: "...",
+      appId: "..."
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function submitOrder(e) {
+      e.preventDefault();
+      const data = {
+        customerName: e.target.name.value,
+        email: e.target.email.value,
+        productId: e.target.product.value,
+        quantity: Number(e.target.qty.value),
+        status: "unconfirmed",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await db.collection('orders').add(data);
+      alert('Order placed!');
+      e.target.reset();
+    }
+  </script>
+  <style>
+    body {font-family:Arial,Helvetica,sans-serif; padding:2rem; max-width:600px; margin:auto;}
+    input, button {display:block; width:100%; margin:0.5rem 0; padding:0.5rem;}
+  </style>
+</head>
+<body>
+  <h2>Place an Order</h2>
+  <form onsubmit="submitOrder(event)">
+    <input name="name" placeholder="Your name" required />
+    <input name="email" type="email" placeholder="Email" required />
+    <input name="product" placeholder="Product ID" required />
+    <input name="qty" type="number" min="1" placeholder="Quantity" required />
+    <button type="submit">Submit Order</button>
+  </form>
+</body>
+</html>

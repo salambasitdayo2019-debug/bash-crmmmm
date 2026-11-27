@@ -1,44 +1,36 @@
 import { useEffect, useState } from "react";
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 
-// ----- Firebase config – replace with your own -----
+// ------------------------------------------------------------------
+// Your Firebase configuration (copied from the script you provided)
+// ------------------------------------------------------------------
 const firebaseConfig = {
-  apiKey: "<<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyDPJPc2uE6E2wtUmtsrP5VWNWORmnG7x6Q",
-    authDomain: "bash-crm-20898.firebaseapp.com",
-    projectId: "bash-crm-20898",
-    storageBucket: "bash-crm-20898.firebasestorage.app",
-    messagingSenderId: "628581111391",
-    appId: "1:628581111391:web:0f8af18589b9e4736d2dea",
-    measurementId: "G-LM534K0F15"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>>",
-  authDomain: "<YOUR_PROJECT>.firebaseapp.com",
-  projectId: "<YOUR_PROJECT>"
+  apiKey: "AIzaSyDPJPc2uE6E2wtUmtsrP5VWNWORmnG7x6Q",
+  authDomain: "bash-crm-20898.firebaseapp.com",
+  projectId: "bash-crm-20898",
+  storageBucket: "bash-crm-20898.firebasestorage.app",
+  messagingSenderId: "628581111391",
+  appId: "1:628581111391:web:0f8af18589b9e4736d2dea",
+  measurementId: "G-LM534K0F15"
 };
 
+// ------------------------------------------------------------------
+// Initialise Firebase (App, Firestore, Auth, Analytics)
+// ------------------------------------------------------------------
 const app = initializeApp(firebaseConfig);
+const analytics = typeof window !== "undefined" ? getAnalytics(app) : null; // safe for SSR
 const db = getFirestore(app);
 const auth = getAuth(app);
 
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
 
+  // ----------------------------------------------------------------
+  // Load orders from Firestore
+  // ----------------------------------------------------------------
   useEffect(() => {
     async function fetchOrders() {
       const snapshot = await getDocs(collection(db, "orders"));
@@ -51,6 +43,9 @@ export default function Dashboard() {
     fetchOrders();
   }, []);
 
+  // ----------------------------------------------------------------
+  // Update order status via the Vercel serverless function
+  // ----------------------------------------------------------------
   const updateStatus = async (id, newStatus) => {
     await fetch("/api/update-status", {
       method: "POST",
@@ -62,11 +57,17 @@ export default function Dashboard() {
     );
   };
 
+  // ----------------------------------------------------------------
+  // Sign‑out the admin
+  // ----------------------------------------------------------------
   const handleLogout = async () => {
     await signOut(auth);
     window.location.href = "/login";
   };
 
+  // ----------------------------------------------------------------
+  // UI (Tailwind‑styled)
+  // ----------------------------------------------------------------
   return (
     <div className="container">
       <header className="flex justify-between items-center mb-6">

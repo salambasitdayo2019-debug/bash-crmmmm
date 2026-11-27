@@ -2,10 +2,17 @@ import { useState } from "react";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 
+// ------------------------------------------------------------------
+// Same Firebase configuration as the dashboard
+// ------------------------------------------------------------------
 const firebaseConfig = {
-  apiKey: "<YOUR_API_KEY>",
-  authDomain: "<YOUR_PROJECT>.firebaseapp.com",
-  projectId: "<YOUR_PROJECT>"
+  apiKey: "AIzaSyDPJPc2uE6E2wtUmtsrP5VWNWORmnG7x6Q",
+  authDomain: "bash-crm-20898.firebaseapp.com",
+  projectId: "bash-crm-20898",
+  storageBucket: "bash-crm-20898.firebasestorage.app",
+  messagingSenderId: "628581111391",
+  appId: "1:628581111391:web:0f8af18589b9e4736d2dea",
+  measurementId: "G-LM534K0F15"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -20,6 +27,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      // after successful sign‑in go to the dashboard
       window.location.href = "/";
     } catch (err) {
       setError(err.message);

@@ -6,6 +6,35 @@
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
   <script>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Order Form</title>
+
+  <!-- Firebase SDK + Analytics (the exact block you posted) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDPJPc2uE6E2wtUmtsrP5VWNWORmnG7x6Q",
+      authDomain: "bash-crm-20898.firebaseapp.com",
+      projectId: "bash-crm-20898",
+      storageBucket: "bash-crm-20898.firebasestorage.app",
+      messagingSenderId: "628581111391",
+      appId: "1:628581111391:web:0f8af18589b9e4736d2dea",
+      measurementId: "G-LM534K0F15"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+</head>
+<body>
+  <!-- your existing form markup -->
+</body>
+</html>
     // TODO: replace with your Firebase project config (free tier)
     const firebaseConfig = {
       apiKey: "<YOUR_API_KEY>",
